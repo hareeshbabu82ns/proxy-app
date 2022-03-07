@@ -9,9 +9,11 @@
     "morgan": "^1.10.0"
   },
   "scripts": {
-    "serve": "nodemon index.js"
+    "serve": "nodemon index.js",
+    "vercel": "vercel"
   },
   "devDependencies": {
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.15",
+    "vercel": "^24.0.0"
   }
 }

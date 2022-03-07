@@ -6,14 +6,15 @@ const { createProxyMiddleware } = require( 'http-proxy-middleware' )
 const app = express()
 
 // Configuration
-const PORT = 3232
+const PORT = process.env.PORT || 3232
 const HOST = "localhost"
-// const API_SERVICE_URL = "http://proxy-pi.local.io:28093" // homer
-// const API_SERVICE_URL = "http://docker-ct.local.io:28093"
-// const API_SERVICE_URL = "https://jsonplaceholder.typicode.com"
-// const API_SERVICE_URL = "https://joplin.terabits.io/"
-const API_SERVICE_URL = "https://wiki.terabits.io/"
-// const API_SERVICE_URL = "https://kasm.local.terabits.io/"
+const API_SERVICE_URL = process.env.APP_URL || "https://wiki.terabits.io/"
+const APP_URL_MAP = {
+  "homer": "http://proxy-pi.local.io:28093",
+  "joplin": "https://joplin.terabits.io/",
+  "wiki": "https://wiki.terabits.io/",
+  "kasm": "https://kasm.local.terabits.io/",
+}
 
 // Logging
 app.use( morgan( 'dev' ) )
@@ -32,25 +33,39 @@ app.get( '/info', ( req, res, next ) => {
 //   }
 // } )
 
+const proxyMiddlewares = {}
+
+function createProxyFromHeader( req, res, next ) {
+  const appID = req.headers[ 'app_id' ]
+  const appURL = appID && APP_URL_MAP[ appID ] ? APP_URL_MAP[ appID ] : req.headers[ 'app_url' ]
+  // console.log( "App URL:", appURL )
+
+  const proxy = proxyMiddlewares[ appURL ] ? proxyMiddlewares[ appURL ] :
+    createProxyMiddleware( {
+      target: appURL,
+      changeOrigin: true,
+      secure: false,
+      autoRewrite: true,
+      protocolRewrite: 'http',
+      ws: true,
+    } )
+
+  proxyMiddlewares[ appURL ] = proxy
+
+  return proxy( req, res, next )
+}
+
+app.use( '/', createProxyFromHeader )
+
 // // Proxy endpoints
-// app.use( '/homer', createProxyMiddleware( {
-//   target: HOMER_SERVICE_URL,
+// app.use( '/', createProxyMiddleware( {
+//   target: API_SERVICE_URL,
 //   changeOrigin: true,
 //   secure: false,
 //   autoRewrite: true,
 //   protocolRewrite: 'http',
-//   pathRewrite: ( path, req ) => path.replace( '/homer', '' )
+//   ws: true,
 // } ) )
-
-// Proxy endpoints
-app.use( '/', createProxyMiddleware( {
-  target: API_SERVICE_URL,
-  changeOrigin: true,
-  secure: false,
-  autoRewrite: true,
-  protocolRewrite: 'http',
-  ws: true,
-} ) )
 
 // // Proxy endpoints
 // app.use( '/wiki', createProxyMiddleware( {
@@ -62,6 +77,6 @@ app.use( '/', createProxyMiddleware( {
 // } ) )
 
 // Start Proxy
-app.listen( PORT, HOST, () => {
+app.listen( PORT, () => {
   console.log( `Starting Proxy at http://${HOST}:${PORT}` )
 } )
