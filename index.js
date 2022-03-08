@@ -8,9 +8,12 @@ const app = express()
 // Configuration
 const PORT = process.env.PORT || 3232
 const HOST = "localhost"
+const API_ID = process.env.APP_ID || "wiki"
 const API_SERVICE_URL = process.env.APP_URL || "https://wiki.terabits.io/"
 const APP_URL_MAP = {
-  "homer": "http://proxy-pi.local.io:28093",
+  "homer": "https://homer.local.terabits.io/",
+  "tv": "http://tv.tvzon.tv/",
+  // "homer": "http://proxy-pi.local.io:28093",
   "joplin": "https://joplin.terabits.io/",
   "wiki": "https://wiki.terabits.io/",
   "kasm": "https://kasm.local.terabits.io/",
@@ -36,9 +39,11 @@ app.get( '/info', ( req, res, next ) => {
 const proxyMiddlewares = {}
 
 function createProxyFromHeader( req, res, next ) {
-  const appID = req.headers[ 'app_id' ]
-  const appURL = appID && APP_URL_MAP[ appID ] ? APP_URL_MAP[ appID ] : req.headers[ 'app_url' ]
-  // console.log( "App URL:", appURL )
+  const appID = req.headers[ 'app_id' ] || process.env.APP_ID
+  const appURL = req.headers[ 'app_url' ] ? req.headers[ 'app_url' ] :
+    appID && APP_URL_MAP[ appID ] ? APP_URL_MAP[ appID ] : process.env.APP_URL
+  // console.log( "Headers:", req.headers )
+  console.log( "App URL:", appURL )
 
   const proxy = proxyMiddlewares[ appURL ] ? proxyMiddlewares[ appURL ] :
     createProxyMiddleware( {
@@ -52,7 +57,7 @@ function createProxyFromHeader( req, res, next ) {
 
   proxyMiddlewares[ appURL ] = proxy
 
-  return proxy( req, res, next )
+  return proxy ? proxy( req, res, next ) : res.send( 'not found' )
 }
 
 app.use( '/', createProxyFromHeader )
