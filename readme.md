@@ -14,8 +14,12 @@ docker run -d -p 3232:3232 \
   --name proxy-server proxy-server
 # or
 docker run -d -p 3232:3232 \
-  -e "APP_URL=https://test.com" \
+  -e "APP_URL=https://joplin.cap.terabits.io" \
   --name proxy-server proxy-server
 
 docker rm -f proxy-server
 ```
+
+# Switching Proxy using Browser Headers
+* `APP_ID` to switch between known apps
+* `APP_URL` to switch using HTTP url
