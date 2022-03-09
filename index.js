@@ -8,8 +8,8 @@ const app = express()
 // Configuration
 const PORT = process.env.PORT || 3232
 const HOST = "localhost"
-const API_ID = process.env.APP_ID || "joplin"
-const API_SERVICE_URL = process.env.APP_URL || "https://joplin.terabits.io/"
+const API_ID = process.env.APP_ID || "wiki"
+const API_SERVICE_URL = process.env.APP_URL || "https://wiki.terabits.io/"
 const APP_URL_MAP = {
   "homer": "https://homer.local.terabits.io/",
   "tv": "http://tv.tvzon.tv/",
